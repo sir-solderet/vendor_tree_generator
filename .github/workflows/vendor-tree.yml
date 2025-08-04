@@ -42,7 +42,7 @@ jobs:
 
       - name: Run vendor tree generator
         run: |
-          python vendor_tree_generator/main.py \
+          python main.py \
             --vendor samsung \
             --device gta9 \
             --images images/gta9 \
