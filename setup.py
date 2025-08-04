@@ -7,9 +7,6 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="vendor_tree_generator",
-    version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
     description="Generate LineageOS/AOSP-style vendor trees from super.img or partition images",
     long_description=long_description,
     long_description_content_type="text/markdown",
