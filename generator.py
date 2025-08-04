@@ -8,8 +8,8 @@ import subprocess
 from pathlib import Path
 from typing import Dict
 
-from .templates import VendorTreeTemplates
-from .utils import get_file_info, is_elf_file
+from templates import VendorTreeTemplates
+from utils import get_file_info, is_elf_file
 
 
 class VendorTreeGenerator:
@@ -191,7 +191,7 @@ class VendorTreeGenerator:
         self.logger.info("Generated %s-vendor.mk", self.device_name)
 
     def _load_proprietary_patterns(self) -> Dict:
-        config_file = Path(__file__).parent.parent / "config" / "proprietary_patterns.json"
+        config_file = Path(__file__).resolve().parent / "config" / "proprietary_patterns.json"
 
         try:
             with open(config_file, "r") as f:
