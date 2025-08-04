@@ -26,20 +26,22 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 black autoflake
 
-      - name: Install simg2img, debugfs, 7z
+      - name: Install simg2img, debugfs, and 7z
         run: |
           sudo apt update
-          sudo apt install -y android-sdk-libsparse-utils e2fsprogs p7zip-full gh
+          sudo apt install -y android-sdk-libsparse-utils e2fsprogs p7zip-full
 
       - name: Download and reconstruct .img files
         run: |
           mkdir -p images/gta9
           cd images/gta9
 
-          # Download all .part_* files from release
-          gh release download --repo sir-solderet/vendor_tree_generator --tag v1.0 -p "*.part_*"
+          # Download all split parts
+          gh release download v1.0 \
+            --repo sir-solderet/vendor_tree_generator \
+            -p "*.part_*"
 
-          # Reconstruct all split images like system.img, vendor.img, etc.
+          # Reconstruct all split .img files
           for part in *.part_aa; do
             base=$(basename "$part" .part_aa)
             echo "Reconstructing $base.img"
@@ -59,9 +61,3 @@ jobs:
             --images images/gta9 \
             --output vendor/samsung/gta9 \
             --verbose
-
-      - name: Upload generated vendor tree
-        uses: actions/upload-artifact@v4
-        with:
-          name: vendor-tree
-          path: vendor/samsung/gta9
