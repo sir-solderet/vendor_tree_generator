@@ -1,37 +1,57 @@
-name: Python Lint & Format Check
+name: Python CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
-    name: Lint and Format Python Code
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install simg2img and debugfs
+        run: |
+          sudo apt update
+          sudo apt install -y android-sdk-libsparse-utils e2fsprogs p7zip-full
+
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 black autoflake
+          pip install .
 
-      - name: Run autoflake (remove unused imports/variables)
+      - name: Download image parts from release
         run: |
-          autoflake --in-place --remove-unused-variables --remove-all-unused-imports -r .
-        continue-on-error: false
+          mkdir -p images/gta9
+          cd images/gta9
+          gh release download v1.0 -p "system.img.part_*"
+          cat system.img.part_* > system.img
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run black (code formatter)
+      - name: Run Vendor Tree Generator
         run: |
-          black .
-        continue-on-error: false
+          python main.py \
+            --vendor samsung \
+            --device gta9 \
+            --images images/gta9 \
+            --output vendor/samsung/gta9
 
-      - name: Run flake8 (style check)
+      - name: Archive vendor tree output
         run: |
-          flake8 . --max-line-length=100
-        continue-on-error: false
+          zip -r vendor_tree_output.zip vendor/samsung/gta9
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vendor_tree
+          path: vendor_tree_output.zip
