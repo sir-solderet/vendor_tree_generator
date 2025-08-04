@@ -1,23 +1,73 @@
-# Ignore Android image files
-*.img
-*.raw
-
-# Ignore mounted directories (from loop mounts)
-mnt_*/
-
-# Ignore Python cache and compiled files
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
 
-# Ignore virtual environment
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
 venv/
+.env/
+.venv/
 
-# Ignore logs and temp files
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Logs
 *.log
-*.tmp
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Extracted Android image files
+*.img
+*.raw
+mnt_*/
+
+# Editor junk
+*.swp
+*~
+.idea/
+.vscode/
 *.bak
 
-# Ignore temporary build or extraction folders
-vendor_tree_*/
-mount_*/
+# GitHub Actions artifacts
+.github/workflows/__pycache__/
+
+# Misc
+*.tar
+*.zip
+*.gz
