@@ -6,7 +6,7 @@ import tempfile
 import shutil
 import logging
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 
 class ImageExtractor:
@@ -25,7 +25,6 @@ class ImageExtractor:
             self.temp_dirs.append(temp_dir)
 
             self.logger.info(f"Extracting super.img to {temp_dir}")
-
             cmd = ["lpunpack", super_img_path, temp_dir]
             result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -34,7 +33,10 @@ class ImageExtractor:
                 return None
 
             expected_partitions = [
-                'vendor.img', 'system.img', 'product.img', 'system_ext.img'
+                "vendor.img",
+                "system.img",
+                "product.img",
+                "system_ext.img",
             ]
             found_partitions = []
 
@@ -55,7 +57,7 @@ class ImageExtractor:
             for partition in found_partitions:
                 partition_path = os.path.join(temp_dir, partition)
                 self._extract_partition(
-                    partition_path, extracted_dir, partition.replace('.img', '')
+                    partition_path, extracted_dir, partition.replace(".img", "")
                 )
 
             return extracted_dir
@@ -83,7 +85,9 @@ class ImageExtractor:
             self.logger.error(f"Error extracting partition image: {e}")
             return None
 
-    def _extract_partition(self, img_path: str, output_dir: str, partition_name: str) -> bool:
+    def _extract_partition(
+        self, img_path: str, output_dir: str, partition_name: str
+    ) -> bool:
         """Extract a single partition image file."""
         try:
             converted_img = self._convert_sparse_image(img_path)
@@ -123,12 +127,12 @@ class ImageExtractor:
     def _convert_sparse_image(self, img_path: str) -> Optional[str]:
         """Convert sparse image to raw image using simg2img."""
         try:
-            with open(img_path, 'rb') as f:
+            with open(img_path, "rb") as f:
                 magic = f.read(4)
-                if magic != b'\x3a\xff\x26\xed':
+                if magic != b"\x3a\xff\x26\xed":
                     return None
 
-            temp_raw = tempfile.mktemp(suffix='.raw.img')
+            temp_raw = tempfile.mktemp(suffix=".raw.img")
             cmd = ["simg2img", img_path, temp_raw]
             result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -148,8 +152,7 @@ class ImageExtractor:
         for mount_point in self.mounted_dirs:
             try:
                 subprocess.run(
-                    ["sudo", "umount", mount_point],
-                    capture_output=True, timeout=10
+                    ["sudo", "umount", mount_point], capture_output=True, timeout=10
                 )
                 if os.path.exists(mount_point):
                     os.rmdir(mount_point)
