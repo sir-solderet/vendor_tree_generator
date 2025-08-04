@@ -53,7 +53,7 @@ dmypy.json
 Thumbs.db
 
 # Extracted Android image files
-*.img
+# *.img
 *.raw
 mnt_*/
 
