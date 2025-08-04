@@ -29,19 +29,22 @@ jobs:
       - name: Install simg2img, debugfs, 7z
         run: |
           sudo apt update
-          sudo apt install -y android-sdk-libsparse-utils e2fsprogs p7zip-full
+          sudo apt install -y android-sdk-libsparse-utils e2fsprogs p7zip-full gh
 
       - name: Download and reconstruct .img files
         run: |
           mkdir -p images/gta9
           cd images/gta9
-          gh release download v1.0 -p "*.part_*"
-          
-          # Reconstruct all split images
+
+          # Download all .part_* files from release
+          gh release download --repo sir-solderet/vendor_tree_generator --tag v1.0 -p "*.part_*"
+
+          # Reconstruct all split images like system.img, vendor.img, etc.
           for part in *.part_aa; do
             base=$(basename "$part" .part_aa)
             echo "Reconstructing $base.img"
             cat "$base".part_* > "$base.img"
+            rm "$base".part_*
             file "$base.img" || true
             7z l "$base.img" || echo "Warning: 7z listing failed for $base.img"
           done
@@ -56,3 +59,9 @@ jobs:
             --images images/gta9 \
             --output vendor/samsung/gta9 \
             --verbose
+
+      - name: Upload generated vendor tree
+        uses: actions/upload-artifact@v3
+        with:
+          name: vendor-tree
+          path: vendor/samsung/gta9
