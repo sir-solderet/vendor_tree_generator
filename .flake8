@@ -1,34 +1,19 @@
 [flake8]
-# Max line length to match black and your CI setting
 max-line-length = 100
 
-# Ignore selected errors
-ignore =
-    E203,  # Whitespace before ':', handled better by black
-    W503,  # Line break before binary operator, black prefers this
-    E266,  # Too many leading '#' for block comment
-    E402,  # Module level import not at top of file (often intentional)
-    F403,  # 'from module import *' used (only ignore if intentional)
-    F405,  # Name may be undefined, from star import
-
-# Exclude specific folders
-exclude =
+exclude = 
     .git,
     __pycache__,
     build,
     dist,
     .venv,
     venv,
-    .eggs,
     *.egg-info,
-    mnt_*/
+    .mypy_cache,
+    .pytest_cache
 
-# Show source code of each error
+# E203 and W503 are commonly ignored when using black
+ignore = E203, W503
+
 show-source = true
-
-# Count total violations
 count = true
-
-# Enable per-file-ignores if needed (customize as required)
-# per-file-ignores =
-#     vendor_tree_generator/__init__.py: F401
