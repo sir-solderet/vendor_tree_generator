@@ -1,37 +1,39 @@
 #!/usr/bin/env python3
 
 import os
-import subprocess
 import logging
 import hashlib
 from typing import Optional, Dict
-from pathlib import Path
+
 
 def setup_logging(level: int = logging.INFO):
     """Setup logging configuration."""
     logging.basicConfig(
         level=level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
+
 
 def check_dependencies() -> bool:
     """Check if required dependencies are available."""
-    required_tools = ['lpunpack', 'simg2img', 'mount', 'sudo']
-    
+    required_tools = ["lpunpack", "simg2img", "mount", "sudo"]
+
     for tool in required_tools:
         if not which(tool):
             logging.error(f"Required tool not found: {tool}")
             return False
-    
+
     return True
+
 
 def which(program: str) -> Optional[str]:
     """Find executable in PATH."""
+
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
-    fpath, fname = os.path.split(program)
+    fpath, _ = os.path.split(program)
     if fpath:
         if is_exe(program):
             return program
@@ -43,32 +45,35 @@ def which(program: str) -> Optional[str]:
 
     return None
 
+
 def get_file_info(file_path: str) -> Optional[Dict]:
     """Get file information including size and type."""
     try:
         stat = os.stat(file_path)
-        
+
         info = {
-            'size': stat.st_size,
-            'mode': oct(stat.st_mode),
-            'is_executable': os.access(file_path, os.X_OK),
-            'is_elf': is_elf_file(file_path),
-            'sha1': calculate_sha1(file_path)
+            "size": stat.st_size,
+            "mode": oct(stat.st_mode),
+            "is_executable": os.access(file_path, os.X_OK),
+            "is_elf": is_elf_file(file_path),
+            "sha1": calculate_sha1(file_path),
         }
-        
+
         return info
-        
+
     except Exception:
         return None
+
 
 def is_elf_file(file_path: str) -> bool:
     """Check if file is an ELF binary."""
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             magic = f.read(4)
-            return magic == b'\x7fELF'
+            return magic == b"\x7fELF"
     except Exception:
         return False
+
 
 def calculate_sha1(file_path: str) -> str:
     """Calculate SHA1 hash of file."""
