@@ -3,8 +3,7 @@ import logging
 import sys
 from pathlib import Path
 
-from vendor_tree_generator.generator import VendorTreeGenerator
-
+from generator import VendorTreeGenerator  # ✅ FIXED
 
 def run_cli():
     parser = argparse.ArgumentParser(
