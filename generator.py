@@ -9,8 +9,8 @@ import subprocess
 from pathlib import Path
 from typing import Dict
 
-from .templates import VendorTreeTemplates
-from .utils import get_file_info, is_elf_file
+from templates import VendorTreeTemplates
+from utils import get_file_info, is_elf_file
 
 
 class VendorTreeGenerator:
