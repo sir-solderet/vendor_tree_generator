@@ -36,8 +36,8 @@ jobs:
           mkdir -p images/gta9
           cd images/gta9
           
-          # Download all .part_* files from GitHub release
-          gh release download sir-solderet/vendor_tree_generator v1.0 -p "*.part_*"
+          # ✅ Fixed gh release command
+          gh release download --repo sir-solderet/vendor_tree_generator --tag v1.0 -p "*.part_*"
           
           # Reconstruct all split .img files correctly
           for part in *.img.part_aa; do
