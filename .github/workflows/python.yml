@@ -28,10 +28,10 @@ jobs:
 
       - name: Run black (code formatter)
         run: |
-          black vendor_tree_generator/
+          black .
         continue-on-error: false
 
       - name: Run flake8 (style check)
         run: |
-          flake8 vendor_tree_generator/ --max-line-length=100
+          flake8 . --max-line-length=100
         continue-on-error: false
