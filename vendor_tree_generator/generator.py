@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Dict
 
@@ -14,26 +15,43 @@ from .utils import get_file_info, is_elf_file
 class VendorTreeGenerator:
     """Generates vendor tree structure and files."""
 
-    def __init__(
-        self,
-        vendor_name: str,
-        device_name: str,
-        android_version: str = "13",
-        verbose: bool = False,
-    ):
+    def __init__(self, vendor_name, device_name, android_version="13", verbose=False):
         self.vendor_name = vendor_name
         self.device_name = device_name
         self.android_version = android_version
         self.verbose = verbose
         self.logger = logging.getLogger(__name__)
-        if self.verbose:
-            logging.basicConfig(level=logging.INFO)
         self.templates = VendorTreeTemplates(vendor_name, device_name, android_version)
         self.proprietary_patterns = self._load_proprietary_patterns()
         self.proprietary_files = []
 
+    def extract_image(self, image_path: Path):
+        """Extracts an Android partition image using simg2img and mount."""
+        extract_dir = Path("extracted") / image_path.stem
+        extract_dir.mkdir(parents=True, exist_ok=True)
+
+        self.logger.info("Extracting image: %s", image_path.name)
+
+        raw_image = image_path
+        if image_path.suffix == ".br":
+            # TODO: Add Brotli decompression if needed
+            self.logger.error("Brotli compression not yet supported.")
+            return
+
+        try:
+            subprocess.run(
+                ["7z", "x", str(raw_image), f"-o{extract_dir}"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as e:
+            self.logger.warning("7z extraction failed. Attempting lpmake fallback...")
+            # TODO: Implement lpunpack fallback if needed
+
+        self.logger.info("Extracted to %s", extract_dir)
+
     def generate_tree(self, extracted_path: str, output_dir: str) -> bool:
-        """Generate the complete vendor tree."""
         try:
             self._create_directory_structure(output_dir)
             self._scan_proprietary_files(extracted_path)
@@ -46,7 +64,7 @@ class VendorTreeGenerator:
 
             self.logger.info(
                 "Generated vendor tree with %d proprietary files",
-                len(self.proprietary_files)
+                len(self.proprietary_files),
             )
             return True
         except Exception as e:
@@ -143,10 +161,7 @@ class VendorTreeGenerator:
                 for file_path in sorted(partitions[partition]):
                     f.write(f"{file_path}\n")
 
-        self.logger.info(
-            "Generated proprietary-files.txt with %d files",
-            len(self.proprietary_files)
-        )
+        self.logger.info("Generated proprietary-files.txt with %d files", len(self.proprietary_files))
 
     def _generate_android_mk(self, output_dir: str):
         output_file = os.path.join(output_dir, "Android.mk")
@@ -177,9 +192,7 @@ class VendorTreeGenerator:
         self.logger.info("Generated %s-vendor.mk", self.device_name)
 
     def _load_proprietary_patterns(self) -> Dict:
-        config_file = (
-            Path(__file__).parent.parent / "config" / "proprietary_patterns.json"
-        )
+        config_file = Path(__file__).parent.parent / "config" / "proprietary_patterns.json"
 
         try:
             with open(config_file, "r") as f:
@@ -187,15 +200,7 @@ class VendorTreeGenerator:
         except Exception:
             return {
                 "include_patterns": [
-                    {
-                        "paths": [
-                            "vendor/bin/",
-                            "vendor/lib/",
-                            "vendor/lib64/",
-                            "vendor/etc/",
-                            "vendor/firmware/",
-                        ]
-                    },
+                    {"paths": ["vendor/bin/", "vendor/lib/", "vendor/lib64/", "vendor/etc/", "vendor/firmware/"]},
                     {"paths": ["system/lib/", "system/lib64/"]},
                     {"paths": ["product/lib/", "product/lib64/"]},
                     {"paths": ["bin/"]},
