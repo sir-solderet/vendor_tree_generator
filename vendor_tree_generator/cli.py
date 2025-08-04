@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 import click
 import logging
-from pathlib import Path
 from colorama import init, Fore, Style
 
 from .extractor import ImageExtractor
@@ -16,56 +14,60 @@ init(autoreset=True)
 
 @click.command()
 @click.option(
-    '--super', '-s', 'super_img',
+    "--super", "-s", "super_img",
     type=click.Path(exists=True),
-    help='Path to super.img file'
+    help="Path to super.img file"
 )
 @click.option(
-    '--partition', '-p', 'partition_img',
+    "--partition", "-p", "partition_img",
     type=click.Path(exists=True),
-    help='Path to partition image file'
+    help="Path to partition image file"
 )
 @click.option(
-    '--output', '-o', 'output_dir',
+    "--output", "-o", "output_dir",
     required=True,
     type=click.Path(),
-    help='Output directory for vendor tree'
+    help="Output directory for vendor tree"
 )
 @click.option(
-    '--vendor', '-v', 'vendor_name',
+    "--vendor", "-v", "vendor_name",
     required=True,
-    help='Vendor name (e.g., samsung)'
+    help="Vendor name (e.g., samsung)"
 )
 @click.option(
-    '--device', '-d', 'device_name',
+    "--device", "-d", "device_name",
     required=True,
-    help='Device codename (e.g., gta9)'
+    help="Device codename (e.g., gta9)"
 )
 @click.option(
-    '--android-version', '-av', 'android_version',
-    default='13',
-    help='Android version (default: 13)'
+    "--android-version", "-av", "android_version",
+    default="13",
+    help="Android version (default: 13)"
 )
 @click.option(
-    '--verbose', '-V', is_flag=True,
-    help='Enable verbose logging'
+    "--verbose", "-V", is_flag=True,
+    help="Enable verbose logging"
 )
 @click.option(
-    '--dry-run', is_flag=True,
-    help='Show what would be done without executing'
+    "--dry-run", is_flag=True,
+    help="Show what would be done without executing"
 )
 def main(
-    super_img, partition_img, output_dir, vendor_name,
-    device_name, android_version, verbose, dry_run
+    super_img,
+    partition_img,
+    output_dir,
+    vendor_name,
+    device_name,
+    android_version,
+    verbose,
+    dry_run,
 ):
     """Generate LineageOS/AOSP-style vendor trees from super.img or partition images."""
 
-    # Setup logging
     log_level = logging.DEBUG if verbose else logging.INFO
     setup_logging(log_level)
     logger = logging.getLogger(__name__)
 
-    # Check dependencies
     if not check_dependencies():
         logger.error(
             "Missing required dependencies. Please install "
@@ -73,7 +75,6 @@ def main(
         )
         sys.exit(1)
 
-    # Validate input
     if not super_img and not partition_img:
         logger.error("Either --super or --partition must be specified")
         sys.exit(1)
@@ -82,15 +83,12 @@ def main(
         logger.error("Cannot specify both --super and --partition")
         sys.exit(1)
 
-    # Print banner
     print(f"{Fore.CYAN}{Style.BRIGHT}Vendor Tree Generator v1.0.0{Style.RESET_ALL}")
     print(f"{Fore.GREEN}{'=' * 50}{Style.RESET_ALL}")
 
     try:
-        # Initialize extractor
         extractor = ImageExtractor(verbose=verbose)
 
-        # Extract image
         if super_img:
             logger.info(f"Extracting super.img: {super_img}")
             extracted_path = extractor.extract_super_img(super_img)
@@ -102,12 +100,11 @@ def main(
             logger.error("Failed to extract image")
             sys.exit(1)
 
-        # Generate vendor tree
         generator = VendorTreeGenerator(
             vendor_name=vendor_name,
             device_name=device_name,
             android_version=android_version,
-            verbose=verbose
+            verbose=verbose,
         )
 
         logger.info(f"Generating vendor tree: {output_dir}")
@@ -126,7 +123,6 @@ def main(
         else:
             logger.info("Dry run - no files written")
 
-        # Cleanup
         extractor.cleanup()
 
     except KeyboardInterrupt:
@@ -140,5 +136,5 @@ def main(
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
