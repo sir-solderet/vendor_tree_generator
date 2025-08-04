@@ -36,6 +36,8 @@ class ImageExtractor:
                 "vendor.img",
                 "system.img",
                 "product.img",
+                "odm.img",
+                "vendor_dlkm.img",
                 "system_ext.img",
             ]
             found_partitions = []
