@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict
 
 from .templates import VendorTreeTemplates
-from .utils import calculate_sha1, get_file_info, is_elf_file
+from .utils import get_file_info, is_elf_file
 
 
 class VendorTreeGenerator:
@@ -29,7 +29,6 @@ class VendorTreeGenerator:
         self.templates = VendorTreeTemplates(
             vendor_name, device_name, android_version
         )
-
         self.proprietary_patterns = self._load_proprietary_patterns()
         self.proprietary_files = []
 
@@ -178,7 +177,9 @@ class VendorTreeGenerator:
         self.logger.info(f"Generated {self.device_name}-vendor.mk")
 
     def _load_proprietary_patterns(self) -> Dict:
-        config_file = Path(__file__).parent.parent / "config" / "proprietary_patterns.json"
+        config_file = (
+            Path(__file__).parent.parent / "config" / "proprietary_patterns.json"
+        )
 
         try:
             with open(config_file, "r") as f:
