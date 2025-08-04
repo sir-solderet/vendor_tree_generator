@@ -30,7 +30,7 @@ jobs:
             --output_dir vendor_output/gta9
 
       - name: Archive Vendor Output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: vendor-tree-gta9
           path: vendor_output/gta9
