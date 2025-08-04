@@ -11,9 +11,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install libmagic system dependency
-        run: sudo apt-get update && sudo apt-get install -y libmagic1
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -24,14 +21,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download .img parts from GitHub Release
+      - name: Download .img files from GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p images/gta9
-          gh release download --repo ${{ github.repository }} --tag v1.0 --pattern '*.img' --dir images/gta9
-          gh release download --repo ${{ github.repository }} --tag v1.0 --pattern '*.img.part_*' --dir images/gta9
-          
+
+          # Download normal .img files (those ≤2GB)
+          gh release download v1.0 --repo sir-solderet/vendor_tree_generator \
+            --pattern '*.img' --dir images/gta9
+
+          # Download split parts of system.img
+          gh release download v1.0 --repo sir-solderet/vendor_tree_generator \
+            --pattern '*.img.part_*' --dir images/gta9
+
           echo "Reconstructing system.img from parts..."
           cd images/gta9
           cat system.img.part_* > system.img
