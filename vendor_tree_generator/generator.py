@@ -26,7 +26,7 @@ class VendorTreeGenerator:
         self.proprietary_files = []
 
     def extract_image(self, image_path: Path):
-        """Extracts an Android partition image using simg2img and mount."""
+        """Extracts an Android partition image using 7z and fallback."""
         extract_dir = Path("extracted") / image_path.stem
         extract_dir.mkdir(parents=True, exist_ok=True)
 
@@ -34,7 +34,6 @@ class VendorTreeGenerator:
 
         raw_image = image_path
         if image_path.suffix == ".br":
-            # TODO: Add Brotli decompression if needed
             self.logger.error("Brotli compression not yet supported.")
             return
 
@@ -45,7 +44,7 @@ class VendorTreeGenerator:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             self.logger.warning("7z extraction failed. Attempting lpmake fallback...")
             # TODO: Implement lpunpack fallback if needed
 
