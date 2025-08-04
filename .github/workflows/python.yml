@@ -36,10 +36,10 @@ jobs:
           mkdir -p images/gta9
           cd images/gta9
           
-          # ✅ Fixed gh release command
-          gh release download --repo sir-solderet/vendor_tree_generator --tag v1.0 -p "*.part_*"
+          # ✅ Compatible with older gh CLI
+          gh release download v1.0 -R sir-solderet/vendor_tree_generator -p "*.part_*"
           
-          # Reconstruct all split .img files correctly
+          # Reconstruct all split .img files
           for part in *.img.part_aa; do
             base=$(basename "$part" .img.part_aa)
             echo "Reconstructing $base.img"
