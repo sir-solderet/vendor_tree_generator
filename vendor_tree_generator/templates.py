@@ -127,11 +127,13 @@ PRODUCT_SOONG_NAMESPACES += \\
 PRODUCT_COPY_FILES += \\
 """
 
-        copy_files = [
-            f"    vendor/{self.vendor_name}/{self.device_name}/proprietary/{file_info['relative_path']}"
-            f":$(TARGET_COPY_OUT_VENDOR)/{file_info['relative_path']}"
-            for file_info in proprietary_files
-        ]
+        copy_files = []
+        for file_info in proprietary_files:
+            rel_path = file_info["relative_path"]
+            copy_files.append(
+                f"    vendor/{self.vendor_name}/{self.device_name}/proprietary/{rel_path}"
+                f":$(TARGET_COPY_OUT_VENDOR)/{rel_path}"
+            )
 
         content += " \\\n".join(copy_files)
 
