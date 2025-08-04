@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import os
 import json
 import logging
+import os
 from pathlib import Path
-from typing import List, Dict, Set
+from typing import Dict, List
+
 from .templates import VendorTreeTemplates
-from .utils import get_file_info, is_elf_file, calculate_sha1
+from .utils import calculate_sha1, get_file_info, is_elf_file
 
 class VendorTreeGenerator:
     """Generates vendor tree structure and files."""
