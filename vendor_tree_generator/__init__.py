@@ -10,7 +10,7 @@ from .utils import setup_logging, check_dependencies
 
 __all__ = [
     "ImageExtractor",
-    "VendorTreeGenerator", 
+    "VendorTreeGenerator",
     "setup_logging",
     "check_dependencies"
 ]
