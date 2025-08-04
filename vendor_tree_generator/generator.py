@@ -3,9 +3,9 @@
 import json
 import logging
 import os
-import tempfile
-import subprocess
 import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Dict
 
@@ -28,32 +28,69 @@ class VendorTreeGenerator:
         self.android_version = android_version
         self.verbose = verbose
         self.logger = logging.getLogger(__name__)
+        if verbose:
+            logging.basicConfig(level=logging.INFO)
         self.templates = VendorTreeTemplates(
             vendor_name, device_name, android_version
         )
         self.proprietary_patterns = self._load_proprietary_patterns()
         self.proprietary_files = []
 
-    def generate_tree(self, extracted_path: str, output_dir: str) -> bool:
-        """Generate the complete vendor tree."""
+    def generate_tree(self, image_dir: str, output_dir: str) -> bool:
+        """Generate the complete vendor tree from given .img files directory."""
         try:
-            self._create_directory_structure(output_dir)
-            self._scan_proprietary_files(extracted_path)
-            self._copy_proprietary_files(extracted_path, output_dir)
-            self._generate_proprietary_files_txt(output_dir)
-            self._generate_android_mk(output_dir)
-            self._generate_android_bp(output_dir)
-            self._generate_board_config(output_dir)
-            self._generate_device_vendor_mk(output_dir)
+            images_dir = Path(image_dir)
+            partitions = [
+                "vendor.img",
+                "system.img",
+                "product.img",
+                "odm.img",
+                "system_ext.img",
+                "vendor_dlkm.img"
+            ]
+            image_paths = [images_dir / img for img in partitions if (images_dir / img).exists()]
 
-            self.logger.info(
-                "Generated vendor tree with %d proprietary files",
-                len(self.proprietary_files)
-            )
-            return True
+            if not image_paths:
+                self.logger.error("No partition images found in %s", image_dir)
+                return False
+
+            with tempfile.TemporaryDirectory() as tmp_extract_dir:
+                for img_path in image_paths:
+                    self._extract_image(img_path, tmp_extract_dir)
+
+                self._create_directory_structure(output_dir)
+                self._scan_proprietary_files(tmp_extract_dir)
+                self._copy_proprietary_files(tmp_extract_dir, output_dir)
+                self._generate_proprietary_files_txt(output_dir)
+                self._generate_android_mk(output_dir)
+                self._generate_android_bp(output_dir)
+                self._generate_board_config(output_dir)
+                self._generate_device_vendor_mk(output_dir)
+
+                self.logger.info(
+                    "Generated vendor tree with %d proprietary files",
+                    len(self.proprietary_files)
+                )
+                return True
+
         except Exception as e:
             self.logger.error("Error generating vendor tree: %s", e)
             return False
+
+    def _extract_image(self, image_path: Path, output_dir: str):
+        extract_path = Path(output_dir) / image_path.stem
+        extract_path.mkdir(parents=True, exist_ok=True)
+
+        try:
+            subprocess.run(
+                ["7z", "x", str(image_path), f"-o{extract_path}"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            self.logger.info("Extracted %s to %s", image_path.name, extract_path)
+        except subprocess.CalledProcessError:
+            self.logger.warning("Failed to extract %s", image_path.name)
 
     def _create_directory_structure(self, output_dir: str):
         base_path = Path(output_dir)
