@@ -68,7 +68,8 @@ def main(
     # Check dependencies
     if not check_dependencies():
         logger.error(
-            "Missing required dependencies. Please install lpunpack, simg2img, and mount tools."
+            "Missing required dependencies. Please install "
+            "lpunpack, simg2img, and mount tools."
         )
         sys.exit(1)
 
@@ -114,7 +115,10 @@ def main(
         if not dry_run:
             success = generator.generate_tree(extracted_path, output_dir)
             if success:
-                print(f"\n{Fore.GREEN}{Style.BRIGHT}✓ Vendor tree generated successfully!{Style.RESET_ALL}")
+                print(
+                    f"\n{Fore.GREEN}{Style.BRIGHT}✓ Vendor tree generated successfully!"
+                    f"{Style.RESET_ALL}"
+                )
                 print(f"{Fore.YELLOW}Output: {output_dir}{Style.RESET_ALL}")
             else:
                 logger.error("Failed to generate vendor tree")
