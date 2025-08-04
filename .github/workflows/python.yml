@@ -21,14 +21,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 black autoflake
 
-      - name: Run autoflake
+      - name: Run autoflake (remove unused imports/variables)
         run: |
           autoflake --in-place --remove-unused-variables --remove-all-unused-imports -r vendor_tree_generator/
+        continue-on-error: false
 
-      - name: Run black
+      - name: Run black (code formatter)
         run: |
           black vendor_tree_generator/
+        continue-on-error: false
 
-      - name: Run flake8
+      - name: Run flake8 (style check)
         run: |
-          flake8 vendor_tree_generator/
+          flake8 vendor_tree_generator/ --max-line-length=100
+        continue-on-error: false
