@@ -45,11 +45,12 @@ class VendorTreeGenerator:
             self._generate_device_vendor_mk(output_dir)
 
             self.logger.info(
-                f"Generated vendor tree with {len(self.proprietary_files)} proprietary files"
+                "Generated vendor tree with %d proprietary files",
+                len(self.proprietary_files)
             )
             return True
         except Exception as e:
-            self.logger.error(f"Error generating vendor tree: {e}")
+            self.logger.error("Error generating vendor tree: %s", e)
             return False
 
     def _create_directory_structure(self, output_dir: str):
@@ -73,7 +74,7 @@ class VendorTreeGenerator:
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
 
-        self.logger.info(f"Created directory structure in {output_dir}")
+        self.logger.info("Created directory structure in %s", output_dir)
 
     def _scan_proprietary_files(self, extracted_path: str):
         self.logger.info("Scanning for proprietary files...")
@@ -94,7 +95,9 @@ class VendorTreeGenerator:
                             }
                         )
 
-        self.logger.info(f"Found {len(self.proprietary_files)} proprietary files")
+        self.logger.info(
+            "Found %d proprietary files", len(self.proprietary_files)
+        )
 
     def _is_proprietary_file(self, rel_path: str) -> bool:
         for pattern in self.proprietary_patterns.get("include_patterns", []):
@@ -121,7 +124,7 @@ class VendorTreeGenerator:
                 if is_elf_file(source):
                     os.chmod(dest_path, 0o755)
             except Exception as e:
-                self.logger.warning(f"Failed to copy {rel_path}: {e}")
+                self.logger.warning("Failed to copy %s: %s", rel_path, e)
 
     def _generate_proprietary_files_txt(self, output_dir: str):
         output_file = os.path.join(output_dir, "proprietary-files.txt")
@@ -144,9 +147,10 @@ class VendorTreeGenerator:
                 for file_path in sorted(partitions[partition]):
                     f.write(f"{file_path}\n")
 
-        count = len(self.proprietary_files)
-self.logger.info(f"Generated proprietary-files.txt with {count} files")
-
+        self.logger.info(
+            "Generated proprietary-files.txt with %d files",
+            len(self.proprietary_files)
+        )
 
     def _generate_android_mk(self, output_dir: str):
         output_file = os.path.join(output_dir, "Android.mk")
@@ -174,7 +178,7 @@ self.logger.info(f"Generated proprietary-files.txt with {count} files")
         content = self.templates.generate_device_vendor_mk(self.proprietary_files)
         with open(output_file, "w") as f:
             f.write(content)
-        self.logger.info(f"Generated {self.device_name}-vendor.mk")
+        self.logger.info("Generated %s-vendor.mk", self.device_name)
 
     def _load_proprietary_patterns(self) -> Dict:
         config_file = (
@@ -187,7 +191,15 @@ self.logger.info(f"Generated proprietary-files.txt with {count} files")
         except Exception:
             return {
                 "include_patterns": [
-                    {"paths": ["vendor/bin/", "vendor/lib/", "vendor/lib64/", "vendor/etc/", "vendor/firmware/"]},
+                    {
+                        "paths": [
+                            "vendor/bin/",
+                            "vendor/lib/",
+                            "vendor/lib64/",
+                            "vendor/etc/",
+                            "vendor/firmware/",
+                        ]
+                    },
                     {"paths": ["system/lib/", "system/lib64/"]},
                     {"paths": ["product/lib/", "product/lib64/"]},
                     {"paths": ["bin/"]},
