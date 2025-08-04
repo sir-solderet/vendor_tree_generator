@@ -1,6 +1,23 @@
+# Ignore Android image files
 *.img
 *.raw
+
+# Ignore mounted directories (from loop mounts)
 mnt_*/
+
+# Ignore Python cache and compiled files
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+
+# Ignore virtual environment
 venv/
+
+# Ignore logs and temp files
+*.log
+*.tmp
+*.bak
+
+# Ignore temporary build or extraction folders
+vendor_tree_*/
+mount_*/
