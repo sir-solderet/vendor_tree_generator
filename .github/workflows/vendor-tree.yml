@@ -1,0 +1,36 @@
+name: Vendor Tree Generation
+
+on:
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Vendor Tree Generator
+        run: |
+          python -m vendor_tree_generator.main \
+            --vendor samsung \
+            --device gta9 \
+            --images_dir images/gta9 \
+            --output_dir vendor_output/gta9
+
+      - name: Archive Vendor Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: vendor-tree-gta9
+          path: vendor_output/gta9
