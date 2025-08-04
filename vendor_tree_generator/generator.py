@@ -144,9 +144,9 @@ class VendorTreeGenerator:
                 for file_path in sorted(partitions[partition]):
                     f.write(f"{file_path}\n")
 
-        self.logger.info(
-            f"Generated proprietary-files.txt with {len(self.proprietary_files)} files"
-        )
+        count = len(self.proprietary_files)
+self.logger.info(f"Generated proprietary-files.txt with {count} files")
+
 
     def _generate_android_mk(self, output_dir: str):
         output_file = os.path.join(output_dir, "Android.mk")
