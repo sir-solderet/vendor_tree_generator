@@ -1,20 +1,171 @@
+#!/usr/bin/env python3
+
 import os
 import subprocess
+import tempfile
+import shutil
+import logging
+from pathlib import Path
+from typing import Optional, List
 
-def extract_partitions(super_img_path, temp_dir):
-    """
-    Unpacks super.img into partitions using lpunpack/simg2img.
-    Assumes utilities and sudo privileges are available.
-    """
-    os.makedirs(temp_dir, exist_ok=True)
-    unpacked_dir = os.path.join(temp_dir, "unpacked")
-    os.makedirs(unpacked_dir, exist_ok=True)
-
-    # Example: lpunpack super.img <unpacked_dir>
-    print(f"Running lpunpack on {super_img_path} ...")
-    subprocess.run(['lpunpack', super_img_path, unpacked_dir], check=True)
-
-    # Example: mount or simg2img for images
-    # You should implement mounting/copying steps as needed for your device
-
-    return unpacked_dir
+class ImageExtractor:
+    """Handles extraction of super.img and partition images."""
+    
+    def __init__(self, verbose: bool = False):
+        self.verbose = verbose
+        self.logger = logging.getLogger(__name__)
+        self.temp_dirs = []
+        self.mounted_dirs = []
+    
+    def extract_super_img(self, super_img_path: str) -> Optional[str]:
+        """Extract super.img using lpunpack."""
+        try:
+            # Create temporary directory
+            temp_dir = tempfile.mkdtemp(prefix="vendor_tree_super_")
+            self.temp_dirs.append(temp_dir)
+            
+            self.logger.info(f"Extracting super.img to {temp_dir}")
+            
+            # Run lpunpack
+            cmd = ["lpunpack", super_img_path, temp_dir]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                self.logger.error(f"lpunpack failed: {result.stderr}")
+                return None
+            
+            # Check for common partitions
+            expected_partitions = ['vendor.img', 'system.img', 'product.img', 'system_ext.img']
+            found_partitions = []
+            
+            for partition in expected_partitions:
+                partition_path = os.path.join(temp_dir, partition)
+                if os.path.exists(partition_path):
+                    found_partitions.append(partition)
+            
+            if not found_partitions:
+                self.logger.error("No expected partitions found in super.img")
+                return None
+            
+            self.logger.info(f"Found partitions: {', '.join(found_partitions)}")
+            
+            # Mount and extract each partition
+            extracted_dir = tempfile.mkdtemp(prefix="vendor_tree_extracted_")
+            self.temp_dirs.append(extracted_dir)
+            
+            for partition in found_partitions:
+                partition_path = os.path.join(temp_dir, partition)
+                self._extract_partition(partition_path, extracted_dir, partition.replace('.img', ''))
+            
+            return extracted_dir
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting super.img: {e}")
+            return None
+    
+    def extract_partition_img(self, partition_img_path: str) -> Optional[str]:
+        """Extract a single partition image."""
+        try:
+            extracted_dir = tempfile.mkdtemp(prefix="vendor_tree_partition_")
+            self.temp_dirs.append(extracted_dir)
+            
+            partition_name = Path(partition_img_path).stem
+            self.logger.info(f"Extracting partition: {partition_name}")
+            
+            success = self._extract_partition(partition_img_path, extracted_dir, partition_name)
+            
+            return extracted_dir if success else None
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting partition image: {e}")
+            return None
+    
+    def _extract_partition(self, img_path: str, output_dir: str, partition_name: str) -> bool:
+        """Extract a single partition image file."""
+        try:
+            # Convert sparse image to raw if needed
+            converted_img = self._convert_sparse_image(img_path)
+            if not converted_img:
+                converted_img = img_path
+            
+            # Create mount point
+            mount_point = tempfile.mkdtemp(prefix=f"mount_{partition_name}_")
+            self.mounted_dirs.append(mount_point)
+            
+            # Mount the image
+            cmd = ["sudo", "mount", "-o", "loop,ro", converted_img, mount_point]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                self.logger.warning(f"Failed to mount {partition_name}: {result.stderr}")
+                return False
+            
+            # Copy files
+            partition_output = os.path.join(output_dir, partition_name)
+            os.makedirs(partition_output, exist_ok=True)
+            
+            self.logger.info(f"Copying {partition_name} files...")
+            cmd = ["sudo", "cp", "-r", f"{mount_point}/.", partition_output]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            # Unmount
+            subprocess.run(["sudo", "umount", mount_point], capture_output=True)
+            
+            if result.returncode == 0:
+                self.logger.info(f"Successfully extracted {partition_name}")
+                return True
+            else:
+                self.logger.error(f"Failed to copy {partition_name} files: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"Error extracting partition {partition_name}: {e}")
+            return False
+    
+    def _convert_sparse_image(self, img_path: str) -> Optional[str]:
+        """Convert sparse image to raw image using simg2img."""
+        try:
+            # Check if it's a sparse image
+            with open(img_path, 'rb') as f:
+                magic = f.read(4)
+                if magic != b'\x3a\xff\x26\xed':  # Sparse image magic
+                    return None
+            
+            # Convert sparse to raw
+            temp_raw = tempfile.mktemp(suffix='.raw.img')
+            cmd = ["simg2img", img_path, temp_raw]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                self.logger.info(f"Converted sparse image: {os.path.basename(img_path)}")
+                return temp_raw
+            else:
+                self.logger.warning(f"Failed to convert sparse image: {result.stderr}")
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"Error converting sparse image: {e}")
+            return None
+    
+    def cleanup(self):
+        """Clean up temporary directories and unmount any mounted filesystems."""
+        # Unmount any remaining mounted directories
+        for mount_point in self.mounted_dirs:
+            try:
+                subprocess.run(["sudo", "umount", mount_point], 
+                             capture_output=True, timeout=10)
+                if os.path.exists(mount_point):
+                    os.rmdir(mount_point)
+            except Exception:
+                pass
+        
+        # Remove temporary directories
+        for temp_dir in self.temp_dirs:
+            try:
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+            except Exception:
+                pass
+        
+        self.temp_dirs.clear()
+        self.mounted_dirs.clear()
