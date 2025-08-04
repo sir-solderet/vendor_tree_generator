@@ -26,27 +26,25 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 black autoflake
 
-      - name: Install simg2img, debugfs, and 7z
+      - name: Install simg2img, debugfs, 7z
         run: |
           sudo apt update
           sudo apt install -y android-sdk-libsparse-utils e2fsprogs p7zip-full
 
-      - name: Download and reconstruct .img files
+      - name: Download and reconstruct .img files from release
         run: |
           mkdir -p images/gta9
           cd images/gta9
-
-          # Download all split parts
-          gh release download v1.0 \
-            --repo sir-solderet/vendor_tree_generator \
-            -p "*.part_*"
-
-          # Reconstruct all split .img files
-          for part in *.part_aa; do
-            base=$(basename "$part" .part_aa)
+          
+          # Download all .part_* files from GitHub release
+          gh release download sir-solderet/vendor_tree_generator v1.0 -p "*.part_*"
+          
+          # Reconstruct all split .img files correctly
+          for part in *.img.part_aa; do
+            base=$(basename "$part" .img.part_aa)
             echo "Reconstructing $base.img"
-            cat "$base".part_* > "$base.img"
-            rm "$base".part_*
+            cat "$base".img.part_* > "$base.img"
+            rm "$base".img.part_*
             file "$base.img" || true
             7z l "$base.img" || echo "Warning: 7z listing failed for $base.img"
           done
