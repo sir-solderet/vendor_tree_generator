@@ -23,7 +23,7 @@ jobs:
 
       - name: Run autoflake (remove unused imports/variables)
         run: |
-          autoflake --in-place --remove-unused-variables --remove-all-unused-imports -r vendor_tree_generator/
+          autoflake --in-place --remove-unused-variables --remove-all-unused-imports -r .
         continue-on-error: false
 
       - name: Run black (code formatter)
