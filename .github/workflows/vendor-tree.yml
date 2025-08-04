@@ -11,6 +11,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install libmagic system dependency
+        run: sudo apt-get update && sudo apt-get install -y libmagic1
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -21,28 +24,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download .img files from GitHub Release
+      - name: Download .img parts from GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p images/gta9
-
-          # Download all .img files and split parts from the v1.0 release
-          gh release download v1.0 \
-            --repo sir-solderet/vendor_tree_generator \
-            --pattern '*.img*' \
-            --dir images/gta9
-
+          gh release download --repo ${{ github.repository }} --tag v1.0 --pattern '*.img' --dir images/gta9
+          gh release download --repo ${{ github.repository }} --tag v1.0 --pattern '*.img.part_*' --dir images/gta9
+          
           echo "Reconstructing system.img from parts..."
           cd images/gta9
           cat system.img.part_* > system.img
-          rm system.img.part_*
-          cd ../..
-          ls -lh images/gta9/*.img
+          ls -lh system.img
 
       - name: Run vendor tree generator
         run: |
-          python main.py \
+          python vendor_tree_generator/main.py \
             --vendor samsung \
             --device gta9 \
             --images images/gta9 \
