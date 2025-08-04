@@ -1,0 +1,55 @@
+{
+    "include_patterns": [
+        {
+            "paths": [
+                "vendor/bin/",
+                "vendor/lib/",
+                "vendor/lib64/",
+                "vendor/etc/",
+                "vendor/firmware/"
+            ],
+            "description": "Vendor partition files"
+        },
+        {
+            "paths": [
+                "system/lib/",
+                "system/lib64/"
+            ],
+            "description": "System libraries"
+        },
+        {
+            "paths": [
+                "product/lib/",
+                "product/lib64/"
+            ],
+            "description": "Product libraries"
+        },
+        {
+            "paths": [
+                "bin/"
+            ],
+            "description": "System binaries"
+        }
+    ],
+    "exclude_patterns": [
+        {
+            "paths": [
+                ".txt",
+                ".xml",
+                ".conf",
+                ".cfg",
+                ".ini",
+                ".json",
+                ".log"
+            ],
+            "description": "Configuration and text files"
+        },
+        {
+            "paths": [
+                "build.prop",
+                "default.prop"
+            ],
+            "description": "Build properties"
+        }
+    ]
+}
