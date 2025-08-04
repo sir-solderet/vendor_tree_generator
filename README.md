@@ -1,11 +1,20 @@
 # Vendor Tree Generator
 
 Generate LineageOS/AOSP-style vendor trees from `super.img` or partition images with ease.
+ 
+# GTA9 Extracted Images
 
-## Features
+These files were extracted from the `super.img` partition of the Samsung GTA9 device.
 
-- Extract files from `super.img` or split partition images  
-- Automatically mount and copy extracted partitions  
+| Partition        | Purpose                    |
+|------------------|-----------------------------|
+| `vendor.img`     | Vendor-specific binaries    |
+| `system.img`     | Android OS system files     |
+| `product.img`    | Product-specific overlays   |
+| `odm.img`        | ODM-specific configuration  |
+| `system_ext.img` | Extensions to the system    |
+| `vendor_dlkm.img`| Kernel modules for vendor   |
+
 - Generate vendor tree files including:  
   - `proprietary-files.txt` (lists proprietary blobs)  
   - `Android.mk` (legacy makefile)  
